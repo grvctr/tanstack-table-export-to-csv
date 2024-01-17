@@ -1,0 +1,34 @@
+{
+  "name": "tanstack-table-export-to-csv",
+  "version": "1.0.0",
+  "description": "The 'TANSTACK REACT TABLE EXPORT TO CSV' is a lightweight and user-friendly package for exporting tanstack react tables to CSV format",
+  "main": "index.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grvctr/tanstack-table-export-to-csv.git"
+  },
+  "keywords": [
+    "tanstack",
+    "tanstack-table",
+    "tanstack-react-table",
+    "csv",
+    "export",
+    "tanstack-table-export",
+    "tanstack-table-csv",
+    "react",
+    "table",
+    "react-table",
+    "datagrid"
+  ],
+  "author": "Aliaksandr Hrytsak",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/grvctr/tanstack-table-export-to-csv/issues"
+  },
+  "homepage": "https://github.com/grvctr/tanstack-table-export-to-csv#readme",
+  "dependencies": {
+    "@tanstack/react-table": "^8.11.6",
+    "react-innertext": "^1.1.5",
+    "typescript": "^5.3.3"
+  }
+}
