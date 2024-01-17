@@ -1,7 +1,7 @@
 import { Header, Row } from "@tanstack/react-table";
 import innerText from "react-innertext";
 
-export const getCsvBlob = (
+const getCsvBlob = (
   headers: Header<any, unknown>[],
   rows: Row<any>[]
 ): Blob => {
@@ -17,7 +17,7 @@ export const getCsvBlob = (
   return new Blob([csvContent], { type: "text/csv" });
 };
 
-export const exportToCsv = (
+const exportToCsv = (
   fileName = "data",
   headers: Header<any, unknown>[],
   rows: Row<any>[]
@@ -32,7 +32,7 @@ export const exportToCsv = (
   link.remove();
 };
 
-export const getHeaderNames = (headers: Header<any, unknown>[]): string[] =>
+const getHeaderNames = (headers: Header<any, unknown>[]): string[] =>
   headers.map((header) => {
     if (typeof header.column.columnDef.header === "function") {
       const headerContext = header.column.columnDef.header(header.getContext());
@@ -52,3 +52,5 @@ const getRowsData = (rows: Row<any>[]): string[][] => {
     return cellsConent;
   });
 };
+
+export = { exportToCsv, getCsvBlob, getHeaderNames };
