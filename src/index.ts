@@ -48,7 +48,7 @@ export const getHeaderNames = (headers: Header<any, unknown>[]): string[] =>
 const getRowsData = (rows: Row<any>[]): string[][] => {
   return rows.map((row: Row<any>) => {
     const cells = row.getAllCells();
-    const cellsConent = cells.map((x) => x.getValue() as string);
+    const cellsConent = cells..filter((x) => x.column.getIsVisible()).map((x) => x.getValue() as string);
     return cellsConent;
   });
 };
