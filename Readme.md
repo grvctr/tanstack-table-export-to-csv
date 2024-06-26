@@ -33,7 +33,7 @@ The `getCsvBlob` function allows you to generate a Blob with CSV data, providing
 ```typescript
 import {
   createColumnHelper,
-  getCoreRowModel,
+  getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { getCsvBlob } from "tanstack-table-export-to-csv";
@@ -247,7 +247,7 @@ A handy utility function, `getHeaderNames`, helps in obtaining text versions of 
 ```typescript
 import {
   createColumnHelper,
-  getCoreRowModel,
+  getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { getHeaderNames } from "tanstack-table-export-to-csv";
@@ -287,7 +287,7 @@ const columns = [
 const table = useReactTable({
   data,
   columns,
-  getCoreRowModel: getCoreRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
 });
 
 const headers = table
