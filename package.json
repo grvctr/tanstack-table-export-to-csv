@@ -1,6 +1,6 @@
 {
   "name": "tanstack-table-export-to-csv",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "The 'TANSTACK REACT TABLE EXPORT TO CSV' is a lightweight and user-friendly package for exporting tanstack react tables to CSV format",
   "main": "index.ts",
   "scripts": {

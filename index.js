@@ -1,8 +1,10 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getHeaderNames = exports.getCsvBlob = void 0;
 var react_innertext_1 = require("react-innertext");
 var getCsvBlob = function (headers, rows) {
     var csvContent = "";
-    var headerNames = getHeaderNames(headers);
+    var headerNames = (0, exports.getHeaderNames)(headers);
     csvContent += headerNames.join(",") + "\n";
     var data = getRowsData(rows);
     data.forEach(function (row) {
@@ -10,9 +12,10 @@ var getCsvBlob = function (headers, rows) {
     });
     return new Blob([csvContent], { type: "text/csv" });
 };
+exports.getCsvBlob = getCsvBlob;
 var exportToCsv = function (fileName, headers, rows) {
     if (fileName === void 0) { fileName = "data"; }
-    var blob = getCsvBlob(headers, rows);
+    var blob = (0, exports.getCsvBlob)(headers, rows);
     var link = document.createElement("a");
     var url = window.URL.createObjectURL(blob);
     link.href = url;
@@ -36,11 +39,12 @@ var getHeaderNames = function (headers) {
         }
     });
 };
+exports.getHeaderNames = getHeaderNames;
 var getRowsData = function (rows) {
     return rows.map(function (row) {
         var cells = row.getAllCells();
-        var cellsConent = cells.map(function (x) { return x.getValue(); });
-        return cellsConent;
+        var cellsContent = cells.filter(function (x) { return x.column.getIsVisible(); }).map(function (x) { return x.getValue(); });
+        return cellsContent;
     });
 };
-module.exports = { exportToCsv: exportToCsv, getCsvBlob: getCsvBlob, getHeaderNames: getHeaderNames };
+exports.default = exportToCsv;
