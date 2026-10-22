@@ -1,18 +1,51 @@
-import type { Header, Row } from "@tanstack/react-table";
+import type { Cell, Header, Row } from "@tanstack/react-table";
 import innerText from "react-innertext";
 
-const escapeCsvValue = (value: unknown): string => {
-  const text = value == null ? "" : String(value);
-  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+export type CsvOptions<TData> = {
+  delimiter?: "," | ";" | "\t";
+  includeBom?: boolean;
+  preventFormulaInjection?: boolean;
+  formatCell?: (value: unknown, cell: Cell<TData, unknown>) => unknown;
+};
+
+const escapeCsvValue = (
+  value: unknown,
+  delimiter: string,
+  preventFormulaInjection: boolean
+): string => {
+  let text = value == null ? "" : String(value);
+  if (
+    preventFormulaInjection &&
+    typeof value === "string" &&
+    /^[=+\-@\t\r]/.test(text)
+  ) {
+    text = `'${text}`;
+  }
+  return text.includes(delimiter) || /["\r\n]/.test(text)
+    ? `"${text.replace(/"/g, '""')}"`
+    : text;
 };
 
 export const getCsvBlob = <TData>(
   headers: Header<TData, unknown>[],
-  rows: Row<TData>[]
+  rows: Row<TData>[],
+  options: CsvOptions<TData> = {}
 ): Blob => {
-  const data = [getHeaderNames(headers), ...getRowsData(rows)];
-  const csvContent = `${data
-    .map((row) => row.map(escapeCsvValue).join(","))
+  const {
+    delimiter = ",",
+    formatCell,
+    includeBom = false,
+    preventFormulaInjection = false,
+  } = options;
+  const data = [getHeaderNames(headers), ...getRowsData(rows, formatCell)];
+  const csvContent = `${includeBom ? "\uFEFF" : ""}${data
+    .map((row) =>
+      row
+        .map((value) =>
+          escapeCsvValue(value, delimiter, preventFormulaInjection)
+        )
+        .join(delimiter)
+    )
     .join("\r\n")}\r\n`;
 
   return new Blob([csvContent], { type: "text/csv;charset=utf-8" });
@@ -21,9 +54,10 @@ export const getCsvBlob = <TData>(
 export const exportToCsv = <TData>(
   fileName = "data",
   headers: Header<TData, unknown>[],
-  rows: Row<TData>[]
+  rows: Row<TData>[],
+  options: CsvOptions<TData> = {}
 ): void => {
-  const blob = getCsvBlob(headers, rows);
+  const blob = getCsvBlob(headers, rows, options);
   const link = document.createElement("a");
   const url = window.URL.createObjectURL(blob);
   link.href = url;
@@ -60,7 +94,16 @@ export const getHeaderNames = <TData>(
       return header.column.columnDef.header ?? header.id;
     });
 
-const getRowsData = <TData>(rows: Row<TData>[]): unknown[][] =>
-  rows.map((row) => row.getVisibleCells().map((cell) => cell.getValue()));
+const getRowsData = <TData>(
+  rows: Row<TData>[],
+  formatCell?: CsvOptions<TData>["formatCell"]
+): unknown[][] =>
+  rows.map((row) =>
+    row
+      .getVisibleCells()
+      .map((cell) =>
+        formatCell ? formatCell(cell.getValue(), cell) : cell.getValue()
+      )
+  );
 
 export default exportToCsv;

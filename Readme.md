@@ -29,7 +29,12 @@ function ExportButton({ table }) {
 }
 ```
 
-The filename receives a `.csv` extension automatically. Pass a different row model to control what gets exported, for example `getCoreRowModel()` for all rows or `getSelectedRowModel()` for selected rows.
+The filename receives a `.csv` extension automatically. Choose the row model that matches the export:
+
+- `table.getCoreRowModel().rows` exports all rows.
+- `table.getFilteredRowModel().rows` exports filtered rows.
+- `table.getRowModel().rows` exports the current page.
+- `table.getSelectedRowModel().rows` exports selected rows.
 
 ### Create a Blob without downloading
 
@@ -38,6 +43,27 @@ import { getCsvBlob } from "tanstack-table-export-to-csv";
 
 const blob = getCsvBlob(headers, rows);
 ```
+
+### Excel, custom delimiters, and formatted values
+
+Both `exportToCsv` and `getCsvBlob` accept the same optional fourth/third argument:
+
+```ts
+exportToCsv("people", headers, rows, {
+  delimiter: ";",
+  includeBom: true,
+  preventFormulaInjection: true,
+  formatCell: (value, cell) =>
+    cell.column.id === "createdAt"
+      ? new Date(String(value)).toLocaleDateString()
+      : value,
+});
+```
+
+- `delimiter` supports comma, semicolon, or tab. The default is comma.
+- `includeBom` helps Excel detect UTF-8 text such as Cyrillic correctly.
+- `preventFormulaInjection` prefixes dangerous string values with an apostrophe. Enable it when exported data can contain untrusted user input.
+- `formatCell` formats dates, currencies, arrays, objects, or any other cell value.
 
 ### Default import
 
@@ -49,8 +75,8 @@ import exportToCsv from "tanstack-table-export-to-csv";
 
 ## API
 
-- `exportToCsv(fileName, headers, rows)` creates and downloads a CSV file.
-- `getCsvBlob(headers, rows)` returns a `Blob` with MIME type `text/csv;charset=utf-8`.
+- `exportToCsv(fileName, headers, rows, options?)` creates and downloads a CSV file.
+- `getCsvBlob(headers, rows, options?)` returns a `Blob` with MIME type `text/csv;charset=utf-8`.
 - `getHeaderNames(headers)` returns the visible leaf-column names.
 
 Fields containing commas, quotes, or line breaks are escaped according to standard CSV rules. Hidden columns, grouped headers, and placeholder headers are omitted.

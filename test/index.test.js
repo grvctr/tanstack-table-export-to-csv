@@ -1,5 +1,6 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
+const { createTable, getCoreRowModel } = require("@tanstack/react-table");
 
 const { exportToCsv, getCsvBlob, getHeaderNames } = require("../index.js");
 
@@ -15,7 +16,11 @@ const header = (id, label = id, options = {}) => ({
 });
 
 const row = (...values) => ({
-  getVisibleCells: () => values.map((value) => ({ getValue: () => value })),
+  getVisibleCells: () =>
+    values.map((value, index) => ({
+      column: { id: String(index) },
+      getValue: () => value,
+    })),
 });
 
 test("creates valid CSV for commas, quotes, newlines, and empty values", async () => {
@@ -41,6 +46,62 @@ test("uses only visible leaf headers", () => {
     ]),
     ["Name"]
   );
+});
+
+test("supports delimiter, BOM, and custom cell formatting", async () => {
+  const blob = getCsvBlob(
+    [header("name", "Name"), header("amount", "Amount")],
+    [row("Ada", 12.5)],
+    {
+      delimiter: ";",
+      includeBom: true,
+      formatCell: (value, cell) =>
+        cell.column.id === "1" ? `${value}; EUR` : value,
+    }
+  );
+
+  const bytes = Buffer.from(await blob.arrayBuffer());
+  assert.equal(bytes.subarray(0, 3).toString("hex"), "efbbbf");
+  assert.equal(
+    bytes.subarray(3).toString(),
+    'Name;Amount\r\nAda;"12.5; EUR"\r\n'
+  );
+});
+
+test("optionally prevents formula injection without changing numbers", async () => {
+  const blob = getCsvBlob(
+    [header("value", "Value")],
+    [row("=1+1"), row(-1), row("-1")],
+    { preventFormulaInjection: true }
+  );
+
+  assert.equal(await blob.text(), "Value\r\n'=1+1\r\n-1\r\n'-1\r\n");
+});
+
+test("works with a real TanStack Table instance", async () => {
+  const table = createTable({
+    data: [{ name: "Ada", age: 36, secret: "hidden" }],
+    columns: [
+      { accessorKey: "name", header: "Name" },
+      { accessorKey: "age", header: "Age" },
+      { accessorKey: "secret", header: "Secret" },
+    ],
+    getCoreRowModel: getCoreRowModel(),
+    state: {
+      columnOrder: [],
+      columnPinning: { left: [], right: [] },
+      columnVisibility: { secret: false },
+    },
+    onStateChange() {},
+    renderFallbackValue: null,
+  });
+  const headers = table
+    .getHeaderGroups()
+    .flatMap((group) => group.headers);
+
+  const blob = getCsvBlob(headers, table.getCoreRowModel().rows);
+
+  assert.equal(await blob.text(), "Name,Age\r\nAda,36\r\n");
 });
 
 test("downloads a .csv file and releases its object URL", () => {

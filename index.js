@@ -27,21 +27,37 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getHeaderNames = exports.exportToCsv = exports.getCsvBlob = void 0;
 var react_innertext_1 = require("react-innertext");
-var escapeCsvValue = function (value) {
+var escapeCsvValue = function (value, delimiter, preventFormulaInjection) {
     var text = value == null ? "" : String(value);
-    return /[",\r\n]/.test(text) ? "\"".concat(text.replace(/"/g, '""'), "\"") : text;
+    if (preventFormulaInjection &&
+        typeof value === "string" &&
+        /^[=+\-@\t\r]/.test(text)) {
+        text = "'".concat(text);
+    }
+    return text.includes(delimiter) || /["\r\n]/.test(text)
+        ? "\"".concat(text.replace(/"/g, '""'), "\"")
+        : text;
 };
-var getCsvBlob = function (headers, rows) {
-    var data = __spreadArray([(0, exports.getHeaderNames)(headers)], __read(getRowsData(rows)), false);
-    var csvContent = "".concat(data
-        .map(function (row) { return row.map(escapeCsvValue).join(","); })
+var getCsvBlob = function (headers, rows, options) {
+    if (options === void 0) { options = {}; }
+    var _a = options.delimiter, delimiter = _a === void 0 ? "," : _a, formatCell = options.formatCell, _b = options.includeBom, includeBom = _b === void 0 ? false : _b, _c = options.preventFormulaInjection, preventFormulaInjection = _c === void 0 ? false : _c;
+    var data = __spreadArray([(0, exports.getHeaderNames)(headers)], __read(getRowsData(rows, formatCell)), false);
+    var csvContent = "".concat(includeBom ? "\uFEFF" : "").concat(data
+        .map(function (row) {
+        return row
+            .map(function (value) {
+            return escapeCsvValue(value, delimiter, preventFormulaInjection);
+        })
+            .join(delimiter);
+    })
         .join("\r\n"), "\r\n");
     return new Blob([csvContent], { type: "text/csv;charset=utf-8" });
 };
 exports.getCsvBlob = getCsvBlob;
-var exportToCsv = function (fileName, headers, rows) {
+var exportToCsv = function (fileName, headers, rows, options) {
     if (fileName === void 0) { fileName = "data"; }
-    var blob = (0, exports.getCsvBlob)(headers, rows);
+    if (options === void 0) { options = {}; }
+    var blob = (0, exports.getCsvBlob)(headers, rows, options);
     var link = document.createElement("a");
     var url = window.URL.createObjectURL(blob);
     link.href = url;
@@ -72,7 +88,13 @@ var getHeaderNames = function (headers) {
     });
 };
 exports.getHeaderNames = getHeaderNames;
-var getRowsData = function (rows) {
-    return rows.map(function (row) { return row.getVisibleCells().map(function (cell) { return cell.getValue(); }); });
+var getRowsData = function (rows, formatCell) {
+    return rows.map(function (row) {
+        return row
+            .getVisibleCells()
+            .map(function (cell) {
+            return formatCell ? formatCell(cell.getValue(), cell) : cell.getValue();
+        });
+    });
 };
 exports.default = exports.exportToCsv;
