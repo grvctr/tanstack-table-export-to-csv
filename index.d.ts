@@ -1,5 +1,5 @@
-import { Header, Row } from "@tanstack/react-table";
-export declare const getCsvBlob: (headers: Header<any, unknown>[], rows: Row<any>[]) => Blob;
-declare const exportToCsv: (fileName: string, headers: Header<any, unknown>[], rows: Row<any>[]) => void;
-export declare const getHeaderNames: (headers: Header<any, unknown>[]) => string[];
+import type { Header, Row } from "@tanstack/react-table";
+export declare const getCsvBlob: <TData>(headers: Header<TData, unknown>[], rows: Row<TData>[]) => Blob;
+export declare const exportToCsv: <TData>(fileName: string, headers: Header<TData, unknown>[], rows: Row<TData>[]) => void;
+export declare const getHeaderNames: <TData>(headers: Header<TData, unknown>[]) => string[];
 export default exportToCsv;
